@@ -8,13 +8,16 @@ import com.pagoflex.compromisos.dto.request.CompromisoRegistroRequest;
 import com.pagoflex.compromisos.dto.response.AnulacionResponse;
 import com.pagoflex.compromisos.dto.response.CompromisoResponse;
 import com.pagoflex.compromisos.service.CompromisoActualizacionPagoService;
+import com.pagoflex.compromisos.service.CompromisoActualizacionRevisionService;
 import com.pagoflex.compromisos.service.CompromisoActualizacionService;
 import com.pagoflex.compromisos.service.CompromisoActualizacionVencimientoService;
 import com.pagoflex.compromisos.service.CompromisoAnulacionService;
 import com.pagoflex.compromisos.service.CompromisoConsultaService;
+import com.pagoflex.compromisos.service.CompromisoRegistroResultado;
 import com.pagoflex.compromisos.service.CompromisoRegistroService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,25 +39,29 @@ public class CompromisoController {
     private final CompromisoAnulacionService compromisoAnulacionService;
     private final CompromisoActualizacionPagoService compromisoActualizacionPagoService;
     private final CompromisoActualizacionVencimientoService compromisoActualizacionVencimientoService;
+    private final CompromisoActualizacionRevisionService compromisoActualizacionRevisionService;
 
     public CompromisoController(CompromisoRegistroService compromisoRegistroService,
                                 CompromisoConsultaService compromisoConsultaService,
                                 CompromisoActualizacionService compromisoActualizacionService,
                                 CompromisoAnulacionService compromisoAnulacionService,
                                 CompromisoActualizacionPagoService compromisoActualizacionPagoService,
-                                CompromisoActualizacionVencimientoService compromisoActualizacionVencimientoService) {
+                                CompromisoActualizacionVencimientoService compromisoActualizacionVencimientoService,
+                                CompromisoActualizacionRevisionService compromisoActualizacionRevisionService) {
         this.compromisoRegistroService = compromisoRegistroService;
         this.compromisoConsultaService = compromisoConsultaService;
         this.compromisoActualizacionService = compromisoActualizacionService;
         this.compromisoAnulacionService = compromisoAnulacionService;
         this.compromisoActualizacionPagoService = compromisoActualizacionPagoService;
         this.compromisoActualizacionVencimientoService = compromisoActualizacionVencimientoService;
+        this.compromisoActualizacionRevisionService = compromisoActualizacionRevisionService;
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public CompromisoResponse registrar(@Valid @RequestBody CompromisoRegistroRequest request) {
-        return compromisoRegistroService.registrar(request);
+    public ResponseEntity<CompromisoResponse> registrar(@Valid @RequestBody CompromisoRegistroRequest request) {
+        CompromisoRegistroResultado resultado = compromisoRegistroService.registrar(request);
+        HttpStatus status = resultado.creado() ? HttpStatus.CREATED : HttpStatus.OK;
+        return ResponseEntity.status(status).body(resultado.respuesta());
     }
 
     @GetMapping("/{id}")
@@ -115,5 +122,10 @@ public class CompromisoController {
     public CompromisoResponse actualizarPorVencimiento(@PathVariable Integer id,
                                                       @Valid @RequestBody CompromisoActualizacionVencimientoRequest request) {
         return compromisoActualizacionVencimientoService.actualizarPorVencimiento(id, request);
+    }
+
+    @PutMapping("/{id}/revision")
+    public CompromisoResponse actualizarRevision(@PathVariable Integer id) {
+        return compromisoActualizacionRevisionService.actualizarRevision(id);
     }
 }

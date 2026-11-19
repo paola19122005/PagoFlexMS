@@ -68,6 +68,12 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.CONFLICT, "COMPROMISO_YA_ANULADO", "Conflict", ex.getMessage(), request.getRequestURI(), null);
     }
 
+    @ExceptionHandler(OrigenDatosInconsistentesException.class)
+    public ResponseEntity<ErrorResponse> handleOrigenDatosInconsistentes(OrigenDatosInconsistentesException ex,
+                                                                          HttpServletRequest request) {
+        return build(HttpStatus.CONFLICT, "ORIGEN_DATOS_INCONSISTENTES", "Conflict", ex.getMessage(), request.getRequestURI(), null);
+    }
+
     @ExceptionHandler(ViolacionIntegridadException.class)
     public ResponseEntity<ErrorResponse> handleViolacionIntegridad(ViolacionIntegridadException ex,
                                                                   HttpServletRequest request) {

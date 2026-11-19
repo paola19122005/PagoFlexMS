@@ -3,80 +3,129 @@ package com.pagoflex.compromisos.service;
 import com.pagoflex.compromisos.dto.request.CompromisoRegistroRequest;
 import com.pagoflex.compromisos.dto.response.CompromisoResponse;
 import com.pagoflex.compromisos.entity.Compromiso;
-import com.pagoflex.compromisos.entity.EstadoCompromiso;
 import com.pagoflex.compromisos.exception.CompromisoPersistenciaException;
-import com.pagoflex.compromisos.exception.ErrorConfiguracionCatalogoException;
+import com.pagoflex.compromisos.exception.OrigenDatosInconsistentesException;
 import com.pagoflex.compromisos.exception.ViolacionIntegridadException;
 import com.pagoflex.compromisos.mapper.CompromisoMapper;
-import com.pagoflex.compromisos.repository.CompromisoRepository;
-import com.pagoflex.compromisos.repository.EstadoCompromisoRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 public class CompromisoRegistroService {
 
-    private final CompromisoRepository compromisoRepository;
-    private final EstadoCompromisoRepository estadoCompromisoRepository;
+    private final CompromisoRegistroTransaccionalService transaccionalService;
+    private final CompromisoOrigenRecuperacionService recuperacionService;
     private final CompromisoMapper compromisoMapper;
 
-    public CompromisoRegistroService(CompromisoRepository compromisoRepository,
-                                    EstadoCompromisoRepository estadoCompromisoRepository,
-                                    CompromisoMapper compromisoMapper) {
-        this.compromisoRepository = compromisoRepository;
-        this.estadoCompromisoRepository = estadoCompromisoRepository;
+    public CompromisoRegistroService(CompromisoRegistroTransaccionalService transaccionalService,
+                                     CompromisoOrigenRecuperacionService recuperacionService,
+                                     CompromisoMapper compromisoMapper) {
+        this.transaccionalService = transaccionalService;
+        this.recuperacionService = recuperacionService;
         this.compromisoMapper = compromisoMapper;
     }
 
-    @Transactional
-    public CompromisoResponse registrar(CompromisoRegistroRequest request) {
-        EstadoCompromiso estadoInicial = estadoCompromisoRepository.findByNombre("Pendiente")
-                .orElseThrow(() -> new ErrorConfiguracionCatalogoException("No se encontró el estado inicial Pendiente"));
+    public CompromisoRegistroResultado registrar(CompromisoRegistroRequest request) {
+        validarIdentidadOrigen(request);
 
-        Compromiso compromiso = compromisoMapper.toEntity(request);
-        compromiso.setEstado(estadoInicial);
-        compromiso.setFolio(generarFolioUnico());
-        LocalDateTime ahora = LocalDateTime.now();
-        compromiso.setFechaRegistro(ahora);
-        compromiso.setFechaCambioEstado(ahora);
+        boolean origenInformado = request.getSistemaOrigen() != null
+                && request.getIdInstanciaOrigen() != null
+                && request.getIdCompromisoOrigen() != null;
+
+        if (origenInformado) {
+            Optional<Compromiso> existente = recuperacionService.obtenerPorOrigen(
+                    request.getSistemaOrigen(),
+                    request.getIdInstanciaOrigen(),
+                    request.getIdCompromisoOrigen());
+
+            if (existente.isPresent()) {
+                if (datosOriginalesIguales(request, existente.get())) {
+                    return new CompromisoRegistroResultado(false, compromisoMapper.toResponse(existente.get()));
+                }
+                throw new OrigenDatosInconsistentesException(
+                        "Ya existe un compromiso con la misma identidad de origen pero con datos diferentes");
+            }
+        }
 
         try {
-            Compromiso guardado = compromisoRepository.saveAndFlush(compromiso);
-            if (guardado.getIdCompromiso() == null) {
-                throw new CompromisoPersistenciaException("No se obtuvo el identificador generado por MySQL");
-            }
-
-            String folioDefinitivo = String.format("CP-%d-%04d",
-                    LocalDate.now().getYear(), guardado.getIdCompromiso());
-            guardado.setFolio(folioDefinitivo);
-
-            Compromiso actualizado = compromisoRepository.save(guardado);
-            return compromisoMapper.toResponse(actualizado);
+            return transaccionalService.registrar(request);
         } catch (DataIntegrityViolationException ex) {
             String restriccion = obtenerRestriccion(ex);
-            if ("uk_compromiso_folio".equalsIgnoreCase(restriccion)) {
-                throw new ViolacionIntegridadException("FOLIO_DUPLICADO",
-                        "Ya existe un compromiso con el folio " + compromiso.getFolio(), ex);
+
+            if ("uq_compromiso_origen".equalsIgnoreCase(restriccion) && origenInformado) {
+                Optional<Compromiso> recuperado = recuperacionService.obtenerPorOrigen(
+                        request.getSistemaOrigen(),
+                        request.getIdInstanciaOrigen(),
+                        request.getIdCompromisoOrigen());
+
+                if (recuperado.isPresent()) {
+                    if (datosOriginalesIguales(request, recuperado.get())) {
+                        return new CompromisoRegistroResultado(false, compromisoMapper.toResponse(recuperado.get()));
+                    }
+                    throw new OrigenDatosInconsistentesException(
+                            "Ya existe un compromiso con la misma identidad de origen pero con datos diferentes");
+                }
+                throw new CompromisoPersistenciaException("Error al guardar el compromiso", ex);
             }
+
             if ("uk_compromiso_unicidad".equalsIgnoreCase(restriccion)) {
                 throw new ViolacionIntegridadException("COMPROMISO_DUPLICADO",
                         "Ya existe un compromiso con la misma combinación de usuario, empresa, concepto y cuota", ex);
             }
+
             throw new CompromisoPersistenciaException("Error al guardar el compromiso", ex);
         }
     }
 
-    private String generarFolioUnico() {
-        long siguiente = compromisoRepository.count() + 1;
-        String folio;
-        do {
-            folio = String.format("CP-%d-%04d", LocalDate.now().getYear(), siguiente++);
-        } while (compromisoRepository.existsByFolio(folio));
-        return folio;
+    private boolean datosOriginalesIguales(CompromisoRegistroRequest request, Compromiso existente) {
+        return java.util.Objects.equals(request.getIdUsuarioFinal(), existente.getIdUsuarioFinal())
+                && java.util.Objects.equals(request.getIdEmpresa(), existente.getIdEmpresa())
+                && java.util.Objects.equals(request.getConcepto(), existente.getConcepto())
+                && java.util.Objects.equals(request.getNumeroCuota(), existente.getNumeroCuota())
+                && java.util.Objects.equals(request.getTotalCuotas(), existente.getTotalCuotas())
+                && java.util.Objects.equals(request.getMonto(), existente.getMonto())
+                && java.util.Objects.equals(request.getFechaVencimiento(), existente.getFechaVencimiento())
+                && java.util.Objects.equals(request.getIdEjecutivoRegistro(), existente.getIdEjecutivoRegistro());
+    }
+
+    private void validarIdentidadOrigen(CompromisoRegistroRequest request) {
+        boolean algunoInformado = request.getSistemaOrigen() != null
+                || request.getIdInstanciaOrigen() != null
+                || request.getIdCompromisoOrigen() != null;
+
+        if (!algunoInformado) {
+            return;
+        }
+
+        if (request.getSistemaOrigen() == null
+                || request.getIdInstanciaOrigen() == null
+                || request.getIdCompromisoOrigen() == null) {
+            throw new IllegalArgumentException("Los campos de identidad de origen deben informarse juntos");
+        }
+
+        if (request.getSistemaOrigen().isBlank()) {
+            throw new IllegalArgumentException("sistemaOrigen no puede estar vacío");
+        }
+
+        if (request.getSistemaOrigen().length() > 30) {
+            throw new IllegalArgumentException("sistemaOrigen no puede superar 30 caracteres");
+        }
+
+        try {
+            java.util.UUID.fromString(request.getIdInstanciaOrigen().trim());
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException("idInstanciaOrigen debe ser un UUID válido");
+        }
+
+        if (request.getIdInstanciaOrigen().trim().length() != 36) {
+            throw new IllegalArgumentException("idInstanciaOrigen debe tener 36 caracteres");
+        }
+
+        if (request.getIdCompromisoOrigen() <= 0) {
+            throw new IllegalArgumentException("idCompromisoOrigen debe ser mayor que cero");
+        }
     }
 
     private String obtenerRestriccion(org.springframework.dao.DataIntegrityViolationException ex) {
