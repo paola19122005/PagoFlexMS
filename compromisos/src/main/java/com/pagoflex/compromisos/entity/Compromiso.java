@@ -88,6 +88,15 @@ public class Compromiso {
     @Column(name = "fecha_registro", nullable = false)
     private LocalDateTime fechaRegistro;
 
+    @Column(name = "sistema_origen", length = 30)
+    private String sistemaOrigen;
+
+    @Column(name = "id_instancia_origen", length = 36)
+    private String idInstanciaOrigen;
+
+    @Column(name = "id_compromiso_origen")
+    private Long idCompromisoOrigen;
+
     @OneToOne(mappedBy = "compromiso", fetch = FetchType.LAZY)
     private Anulacion anulacion;
 }

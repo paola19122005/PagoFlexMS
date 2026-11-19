@@ -24,6 +24,12 @@ public interface CompromisoRepository extends JpaRepository<Compromiso, Integer>
 
     boolean existsByFolio(String folio);
 
+    Optional<Compromiso> findBySistemaOrigenAndIdInstanciaOrigenAndIdCompromisoOrigen(
+            String sistemaOrigen,
+            String idInstanciaOrigen,
+            Long idCompromisoOrigen
+    );
+
     boolean existsByIdUsuarioFinalAndIdEmpresaAndConceptoAndNumeroCuota(
             Integer idUsuarioFinal,
             Integer idEmpresa,

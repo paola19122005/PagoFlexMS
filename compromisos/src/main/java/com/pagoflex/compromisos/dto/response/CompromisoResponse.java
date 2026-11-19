@@ -20,6 +20,12 @@ public class CompromisoResponse {
     private Integer idEjecutivoRegistro;
     private LocalDateTime fechaRegistro;
 
+    private String sistemaOrigen;
+
+    private String idInstanciaOrigen;
+
+    private Long idCompromisoOrigen;
+
     public Integer getIdCompromiso() {
         return idCompromiso;
     }
@@ -130,5 +136,29 @@ public class CompromisoResponse {
 
     public void setFechaRegistro(LocalDateTime fechaRegistro) {
         this.fechaRegistro = fechaRegistro;
+    }
+
+    public String getSistemaOrigen() {
+        return sistemaOrigen;
+    }
+
+    public void setSistemaOrigen(String sistemaOrigen) {
+        this.sistemaOrigen = sistemaOrigen;
+    }
+
+    public String getIdInstanciaOrigen() {
+        return idInstanciaOrigen;
+    }
+
+    public void setIdInstanciaOrigen(String idInstanciaOrigen) {
+        this.idInstanciaOrigen = idInstanciaOrigen;
+    }
+
+    public Long getIdCompromisoOrigen() {
+        return idCompromisoOrigen;
+    }
+
+    public void setIdCompromisoOrigen(Long idCompromisoOrigen) {
+        this.idCompromisoOrigen = idCompromisoOrigen;
     }
 }

@@ -34,6 +34,15 @@ public class CompromisoRegistroRequest {
 
     private Integer idEjecutivoRegistro;
 
+    @Size(max = 30)
+    private String sistemaOrigen;
+
+    @Size(max = 36)
+    private String idInstanciaOrigen;
+
+    @Positive
+    private Long idCompromisoOrigen;
+
     public Integer getIdUsuarioFinal() {
         return idUsuarioFinal;
     }
@@ -96,5 +105,29 @@ public class CompromisoRegistroRequest {
 
     public void setIdEjecutivoRegistro(Integer idEjecutivoRegistro) {
         this.idEjecutivoRegistro = idEjecutivoRegistro;
+    }
+
+    public String getSistemaOrigen() {
+        return sistemaOrigen;
+    }
+
+    public void setSistemaOrigen(String sistemaOrigen) {
+        this.sistemaOrigen = sistemaOrigen;
+    }
+
+    public String getIdInstanciaOrigen() {
+        return idInstanciaOrigen;
+    }
+
+    public void setIdInstanciaOrigen(String idInstanciaOrigen) {
+        this.idInstanciaOrigen = idInstanciaOrigen;
+    }
+
+    public Long getIdCompromisoOrigen() {
+        return idCompromisoOrigen;
+    }
+
+    public void setIdCompromisoOrigen(Long idCompromisoOrigen) {
+        this.idCompromisoOrigen = idCompromisoOrigen;
     }
 }

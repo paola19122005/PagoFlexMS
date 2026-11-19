@@ -20,6 +20,9 @@ public class CompromisoMapper {
         compromiso.setFechaVencimiento(request.getFechaVencimiento());
         compromiso.setIdEjecutivoRegistro(request.getIdEjecutivoRegistro());
         compromiso.setRecargoAplicado(0);
+        compromiso.setSistemaOrigen(request.getSistemaOrigen());
+        compromiso.setIdInstanciaOrigen(request.getIdInstanciaOrigen());
+        compromiso.setIdCompromisoOrigen(request.getIdCompromisoOrigen());
         return compromiso;
     }
 
@@ -47,6 +50,9 @@ public class CompromisoMapper {
         response.setFechaCambioEstado(compromiso.getFechaCambioEstado());
         response.setIdEjecutivoRegistro(compromiso.getIdEjecutivoRegistro());
         response.setFechaRegistro(compromiso.getFechaRegistro());
+        response.setSistemaOrigen(compromiso.getSistemaOrigen());
+        response.setIdInstanciaOrigen(compromiso.getIdInstanciaOrigen());
+        response.setIdCompromisoOrigen(compromiso.getIdCompromisoOrigen());
         return response;
     }
 }
