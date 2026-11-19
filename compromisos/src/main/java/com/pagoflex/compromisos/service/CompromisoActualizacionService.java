@@ -5,6 +5,7 @@ import com.pagoflex.compromisos.dto.response.CompromisoResponse;
 import com.pagoflex.compromisos.entity.Compromiso;
 import com.pagoflex.compromisos.exception.CompromisoNoEncontradoException;
 import com.pagoflex.compromisos.exception.CompromisoPersistenciaException;
+import com.pagoflex.compromisos.exception.ViolacionIntegridadException;
 import com.pagoflex.compromisos.mapper.CompromisoMapper;
 import com.pagoflex.compromisos.repository.CompromisoRepository;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -35,7 +36,27 @@ public class CompromisoActualizacionService {
             Compromiso actualizado = compromisoRepository.save(compromiso);
             return compromisoMapper.toResponse(actualizado);
         } catch (DataIntegrityViolationException ex) {
+            String restriccion = obtenerRestriccion(ex);
+            if ("uk_compromiso_folio".equalsIgnoreCase(restriccion)) {
+                throw new ViolacionIntegridadException("FOLIO_DUPLICADO",
+                        "Ya existe un compromiso con el folio " + compromiso.getFolio(), ex);
+            }
+            if ("uk_compromiso_unicidad".equalsIgnoreCase(restriccion)) {
+                throw new ViolacionIntegridadException("COMPROMISO_DUPLICADO",
+                        "Ya existe un compromiso con la misma combinación de usuario, empresa, concepto y cuota", ex);
+            }
             throw new CompromisoPersistenciaException("Error al actualizar el compromiso", ex);
         }
+    }
+
+    private String obtenerRestriccion(org.springframework.dao.DataIntegrityViolationException ex) {
+        Throwable causa = ex;
+        while (causa != null) {
+            if (causa instanceof org.hibernate.exception.ConstraintViolationException hibernateEx) {
+                return hibernateEx.getConstraintName();
+            }
+            causa = causa.getCause();
+        }
+        return null;
     }
 }

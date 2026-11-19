@@ -4,6 +4,7 @@ import com.pagoflex.compromisos.dto.response.CompromisoResponse;
 import com.pagoflex.compromisos.entity.Compromiso;
 import com.pagoflex.compromisos.entity.EstadoCompromiso;
 import com.pagoflex.compromisos.exception.CompromisoNoEncontradoException;
+import com.pagoflex.compromisos.exception.EstadoNoEncontradoException;
 import com.pagoflex.compromisos.mapper.CompromisoMapper;
 import com.pagoflex.compromisos.repository.CompromisoRepository;
 import com.pagoflex.compromisos.repository.EstadoCompromisoRepository;
@@ -67,7 +68,7 @@ public class CompromisoConsultaService {
     @Transactional(readOnly = true)
     public List<CompromisoResponse> listarPorEstado(String nombreEstado) {
         EstadoCompromiso estado = estadoCompromisoRepository.findByNombre(nombreEstado)
-                .orElseThrow(() -> new CompromisoNoEncontradoException(
+                .orElseThrow(() -> new EstadoNoEncontradoException(
                         "Estado no encontrado: " + nombreEstado));
         return compromisoRepository.findByEstado(estado).stream()
                 .map(compromisoMapper::toResponse)

@@ -6,6 +6,7 @@ import com.pagoflex.compromisos.entity.Compromiso;
 import com.pagoflex.compromisos.entity.EstadoCompromiso;
 import com.pagoflex.compromisos.exception.CompromisoNoEncontradoException;
 import com.pagoflex.compromisos.exception.CompromisoPersistenciaException;
+import com.pagoflex.compromisos.exception.EstadoNoEncontradoException;
 import com.pagoflex.compromisos.mapper.CompromisoMapper;
 import com.pagoflex.compromisos.repository.CompromisoRepository;
 import com.pagoflex.compromisos.repository.EstadoCompromisoRepository;
@@ -55,7 +56,7 @@ public class CompromisoActualizacionVencimientoService {
 
         EstadoCompromiso estadoNuevo = estadoCompromisoRepository
                 .findByNombre(request.getEstado().trim())
-                .orElseThrow(() -> new CompromisoPersistenciaException(
+                .orElseThrow(() -> new EstadoNoEncontradoException(
                         "Estado no encontrado: " + request.getEstado()));
 
         boolean cambioEstado = !estadoNuevo.getNombre().equals(compromiso.getEstado().getNombre());

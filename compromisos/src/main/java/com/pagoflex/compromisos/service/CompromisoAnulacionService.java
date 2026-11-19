@@ -8,6 +8,9 @@ import com.pagoflex.compromisos.entity.EstadoCompromiso;
 import com.pagoflex.compromisos.entity.MotivoAnulacion;
 import com.pagoflex.compromisos.exception.CompromisoNoEncontradoException;
 import com.pagoflex.compromisos.exception.CompromisoPersistenciaException;
+import com.pagoflex.compromisos.exception.CompromisoYaAnuladoException;
+import com.pagoflex.compromisos.exception.ErrorConfiguracionCatalogoException;
+import com.pagoflex.compromisos.exception.MotivoAnulacionNoEncontradoException;
 import com.pagoflex.compromisos.repository.AnulacionRepository;
 import com.pagoflex.compromisos.repository.CompromisoRepository;
 import com.pagoflex.compromisos.repository.EstadoCompromisoRepository;
@@ -63,11 +66,11 @@ public class CompromisoAnulacionService {
                         "Compromiso no encontrado: " + idCompromiso));
 
         if (anulacionRepository.existsById(idCompromiso)) {
-            throw new CompromisoPersistenciaException("El compromiso ya tiene una anulación registrada");
+            throw new CompromisoYaAnuladoException("El compromiso " + idCompromiso + " ya tiene una anulación registrada");
         }
 
         EstadoCompromiso estadoAnulado = estadoCompromisoRepository.findByNombre("Anulado")
-                .orElseThrow(() -> new CompromisoPersistenciaException("Estado Anulado no encontrado"));
+                .orElseThrow(() -> new ErrorConfiguracionCatalogoException("No se encontró el estado Anulado"));
 
         String motivoRecibido = request.getMotivo().trim();
         String motivoOriginal = request.getMotivo();
@@ -84,7 +87,7 @@ public class CompromisoAnulacionService {
             comentario = null;
         } else {
             motivoCatalogo = motivoAnulacionRepository.findByNombre("Otro")
-                    .orElseThrow(() -> new CompromisoPersistenciaException("Motivo Otro no encontrado"));
+                    .orElseThrow(() -> new MotivoAnulacionNoEncontradoException("No se encontró el motivo Otro"));
             comentario = motivoOriginal;
         }
 
@@ -109,7 +112,7 @@ public class CompromisoAnulacionService {
             response.setEstadoCompromiso(compromiso.getEstado().getNombre());
             return response;
         } catch (DataIntegrityViolationException ex) {
-            throw new CompromisoPersistenciaException("Error al anular el compromiso", ex);
+            throw new CompromisoYaAnuladoException("El compromiso " + idCompromiso + " ya tiene una anulación registrada");
         }
     }
 }
