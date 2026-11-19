@@ -8,7 +8,6 @@ import com.pagoflex.compromisos.entity.MotivoAnulacion;
 import com.pagoflex.compromisos.exception.CompromisoNoEncontradoException;
 import com.pagoflex.compromisos.exception.CompromisoYaAnuladoException;
 import com.pagoflex.compromisos.exception.ErrorConfiguracionCatalogoException;
-import com.pagoflex.compromisos.exception.MotivoAnulacionNoEncontradoException;
 import com.pagoflex.compromisos.repository.AnulacionRepository;
 import com.pagoflex.compromisos.repository.CompromisoRepository;
 import com.pagoflex.compromisos.repository.EstadoCompromisoRepository;
@@ -21,8 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -61,6 +59,7 @@ class CompromisoAnulacionServiceTest {
 
         AnulacionResponse response = service.anular(1, request);
 
+        assertNotNull(response);
         assertEquals("Anulado", compromiso.getEstado().getNombre());
     }
 

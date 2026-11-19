@@ -18,8 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDate;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,6 +56,7 @@ class CompromisoActualizacionPagoServiceTest {
 
         CompromisoResponse response = service.actualizarPorPago(1, request);
 
+        assertNotNull(response);
         assertEquals("Pagado", compromiso.getEstado().getNombre());
         assertEquals((short) 2, compromiso.getNumeroCuota());
     }

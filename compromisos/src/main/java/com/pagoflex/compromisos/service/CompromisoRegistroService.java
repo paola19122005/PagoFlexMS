@@ -1,7 +1,6 @@
 package com.pagoflex.compromisos.service;
 
 import com.pagoflex.compromisos.dto.request.CompromisoRegistroRequest;
-import com.pagoflex.compromisos.dto.response.CompromisoResponse;
 import com.pagoflex.compromisos.entity.Compromiso;
 import com.pagoflex.compromisos.exception.CompromisoPersistenciaException;
 import com.pagoflex.compromisos.exception.OrigenDatosInconsistentesException;
