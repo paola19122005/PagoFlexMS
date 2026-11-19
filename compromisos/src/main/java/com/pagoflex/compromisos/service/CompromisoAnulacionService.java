@@ -7,7 +7,6 @@ import com.pagoflex.compromisos.entity.Compromiso;
 import com.pagoflex.compromisos.entity.EstadoCompromiso;
 import com.pagoflex.compromisos.entity.MotivoAnulacion;
 import com.pagoflex.compromisos.exception.CompromisoNoEncontradoException;
-import com.pagoflex.compromisos.exception.CompromisoPersistenciaException;
 import com.pagoflex.compromisos.exception.CompromisoYaAnuladoException;
 import com.pagoflex.compromisos.exception.ErrorConfiguracionCatalogoException;
 import com.pagoflex.compromisos.exception.MotivoAnulacionNoEncontradoException;
