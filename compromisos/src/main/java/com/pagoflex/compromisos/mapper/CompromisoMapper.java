@@ -1,5 +1,6 @@
 package com.pagoflex.compromisos.mapper;
 
+import com.pagoflex.compromisos.dto.request.CompromisoActualizacionRequest;
 import com.pagoflex.compromisos.dto.request.CompromisoRegistroRequest;
 import com.pagoflex.compromisos.dto.response.CompromisoResponse;
 import com.pagoflex.compromisos.entity.Compromiso;
@@ -20,6 +21,14 @@ public class CompromisoMapper {
         compromiso.setIdEjecutivoRegistro(request.getIdEjecutivoRegistro());
         compromiso.setRecargoAplicado(0);
         return compromiso;
+    }
+
+    public void actualizarEntidad(Compromiso compromiso, CompromisoActualizacionRequest request) {
+        compromiso.setConcepto(request.getConcepto());
+        compromiso.setNumeroCuota(request.getNumeroCuota());
+        compromiso.setTotalCuotas(request.getTotalCuotas());
+        compromiso.setMonto(request.getMonto());
+        compromiso.setFechaVencimiento(request.getFechaVencimiento());
     }
 
     public CompromisoResponse toResponse(Compromiso compromiso) {
