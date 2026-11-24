@@ -1,0 +1,8 @@
+package com.pagoflex.usuarios.exception;
+
+public class RolInvalidoException extends RuntimeException {
+
+    public RolInvalidoException(String message) {
+        super(message);
+    }
+}
