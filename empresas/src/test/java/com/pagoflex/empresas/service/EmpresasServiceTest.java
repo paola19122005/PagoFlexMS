@@ -322,4 +322,64 @@ class EmpresasServiceTest {
                 () -> service.eliminar(1L)
         );
     }
+
+
+        @Test
+        void actualizarConCodigoDeLaMismaEmpresa() {
+
+        EmpresasRegistroRequest request = new EmpresasRegistroRequest();
+        request.setCodigo("EMP001");
+        request.setRut("76.123.456-7");
+
+        Empresas empresa = new Empresas();
+        empresa.setId(1L);
+
+        when(empresasRepository.findById(1L))
+                .thenReturn(Optional.of(empresa));
+
+        // El código pertenece a la misma empresa.
+        when(empresasRepository.findByCodigo("EMP001"))
+                .thenReturn(Optional.of(empresa));
+
+        when(empresasRepository.findByRut("76.123.456-7"))
+                .thenReturn(Optional.empty());
+
+        when(empresasRepository.save(empresa))
+                .thenReturn(empresa);
+
+        when(empresasMapper.toResponse(empresa))
+                .thenReturn(new EmpresasResponse());
+
+        assertNotNull(service.actualizar(1L, request));
+        }
+
+        @Test
+        void actualizarConRutDeLaMismaEmpresa() {
+
+        EmpresasRegistroRequest request = new EmpresasRegistroRequest();
+        request.setCodigo("EMP001");
+        request.setRut("76.123.456-7");
+
+        Empresas empresa = new Empresas();
+        empresa.setId(1L);
+
+        when(empresasRepository.findById(1L))
+                .thenReturn(Optional.of(empresa));
+
+        when(empresasRepository.findByCodigo("EMP001"))
+                .thenReturn(Optional.empty());
+
+        // El RUT pertenece a la misma empresa.
+        when(empresasRepository.findByRut("76.123.456-7"))
+                .thenReturn(Optional.of(empresa));
+
+        when(empresasRepository.save(empresa))
+                .thenReturn(empresa);
+
+        when(empresasMapper.toResponse(empresa))
+                .thenReturn(new EmpresasResponse());
+
+        assertNotNull(service.actualizar(1L, request));
+        }
+
 }
