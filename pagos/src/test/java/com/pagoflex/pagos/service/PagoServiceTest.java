@@ -40,6 +40,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
 class PagoServiceTest {
@@ -358,5 +360,217 @@ class PagoServiceTest {
                 .thenReturn(Optional.of(comprobante));
 
         assertEquals(70L, service.obtenerComprobantePorFolio("PF-FOLIO-01").getId());
+    }
+
+    @Test
+    void registrarRechazaSolicitudesConDatosInvalidos() {
+        assertSolicitudInvalida(null);
+
+        PagoRegistroRequest request = requestValido();
+        request.setUsuarioId(null);
+        assertSolicitudInvalida(request);
+
+        request = requestValido();
+        request.setUsuarioId(0L);
+        assertSolicitudInvalida(request);
+
+        request = requestValido();
+        request.setCompromisoId(null);
+        assertSolicitudInvalida(request);
+
+        request = requestValido();
+        request.setCompromisoId(0L);
+        assertSolicitudInvalida(request);
+
+        request = requestValido();
+        request.setEmpresaId(null);
+        assertSolicitudInvalida(request);
+
+        request = requestValido();
+        request.setEmpresaId(0L);
+        assertSolicitudInvalida(request);
+
+        request = requestValido();
+        request.setMontoPagado(null);
+        assertSolicitudInvalida(request);
+
+        request = requestValido();
+        request.setMontoPagado(0);
+        assertSolicitudInvalida(request);
+
+        request = requestValido();
+        request.setMetodoPago(null);
+        assertSolicitudInvalida(request);
+
+        request = requestValido();
+        request.setMetodoPago("   ");
+        assertSolicitudInvalida(request);
+
+        request = requestValido();
+        request.setCuotaPagada(0);
+        assertSolicitudInvalida(request);
+
+        verifyNoInteractions(usuarioIntegrationService);
+        verifyNoInteractions(compromisoIntegrationService);
+        verifyNoInteractions(pagoRepository);
+    }
+
+    private void assertSolicitudInvalida(PagoRegistroRequest request) {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.registrar(request)
+        );
+    }
+
+    @Test
+    void registrarRechazaCompromisoEnRevision() {
+        PagoRegistroRequest request = requestValido();
+        when(usuarioIntegrationService.obtenerUsuario(7L)).thenReturn(usuarioActivo());
+
+        CompromisoRemotoResponse compromiso = compromisoPendiente();
+        compromiso.setEstado("EN_REVISION");
+
+        when(compromisoIntegrationService.obtenerCompromiso(21L))
+                .thenReturn(compromiso);
+
+        assertThrows(
+                EstadoCompromisoInvalidoException.class,
+                () -> service.registrar(request)
+        );
+
+        verify(pagoRepository, never()).save(any());
+    }
+
+    @Test
+    void registrarRechazaCompromisoDeOtraEmpresa() {
+        PagoRegistroRequest request = requestValido();
+        when(usuarioIntegrationService.obtenerUsuario(7L)).thenReturn(usuarioActivo());
+
+        CompromisoRemotoResponse compromiso = compromisoPendiente();
+        compromiso.setIdEmpresa(2000L);
+
+        when(compromisoIntegrationService.obtenerCompromiso(21L))
+                .thenReturn(compromiso);
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.registrar(request)
+        );
+
+        verify(pagoRepository, never()).save(any());
+    }
+
+    @Test
+    void registrarRechazaNumeroComprobanteDuplicado() {
+        PagoRegistroRequest request = requestValido();
+        request.setFolioUnico("PF-CLIENTE-01");
+        request.setNumeroComprobante("CPR-DUPLICADO");
+
+        prepararRemotos();
+
+        when(pagoRepository.existsByNumeroComprobante("CPR-DUPLICADO"))
+                .thenReturn(true);
+
+        assertThrows(
+                FolioDuplicadoException.class,
+                () -> service.registrar(request)
+        );
+
+        verify(pagoRepository, never()).save(any());
+    }
+
+    @Test
+    void registrarAgotaIntentosAlGenerarFolioDuplicado() {
+        prepararRemotos();
+
+        when(folioGenerator.generarFolioUnico())
+                .thenReturn("PF-DUPLICADO");
+
+        when(pagoRepository.existsByFolioUnico("PF-DUPLICADO"))
+                .thenReturn(true);
+
+        assertThrows(
+                FolioDuplicadoException.class,
+                () -> service.registrar(requestValido())
+        );
+
+        verify(folioGenerator, times(5)).generarFolioUnico();
+        verify(pagoRepository, never()).save(any());
+    }
+
+    @Test
+    void registrarAgotaIntentosAlGenerarNumeroComprobanteDuplicado() {
+        PagoRegistroRequest request = requestValido();
+        request.setFolioUnico("PF-CLIENTE-01");
+
+        prepararRemotos();
+
+        when(folioGenerator.generarNumeroComprobante())
+                .thenReturn("CPR-DUPLICADO");
+
+        when(pagoRepository.existsByNumeroComprobante("CPR-DUPLICADO"))
+                .thenReturn(true);
+
+        assertThrows(
+                FolioDuplicadoException.class,
+                () -> service.registrar(request)
+        );
+
+        verify(folioGenerator, times(5)).generarNumeroComprobante();
+        verify(pagoRepository, never()).save(any());
+    }
+
+    @Test
+    void resumenPorEmpresaConsideraMontoNuloComoCero() {
+        Pago pagoConMonto = pago(1L, 7L, 1009L, 15000);
+        Pago pagoSinMonto = pago(2L, 7L, 1009L, null);
+
+        when(pagoRepository.findByIdEmpresa(1009L))
+                .thenReturn(List.of(pagoConMonto, pagoSinMonto));
+
+        PagoResumenResponse resumen = service.resumenPorEmpresa(1009L);
+
+        assertEquals(2L, resumen.getCantidadPagos());
+        assertEquals(15000L, resumen.getTotalRecaudado());
+    }
+    @Test
+    void obtenerPorFolioUnicoRechazaFolioNuloOVacio() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.obtenerPorFolioUnico(null)
+        );
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.obtenerPorFolioUnico("   ")
+        );
+
+        verifyNoInteractions(pagoRepository);
+    }
+
+    @Test
+    void obtenerComprobantePorFolioRechazaFolioNuloOVacio() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.obtenerComprobantePorFolio(null)
+        );
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.obtenerComprobantePorFolio("   ")
+        );
+
+        verifyNoInteractions(comprobanteRepository);
+    }
+
+    @Test
+    void obtenerComprobantePorFolioNoEncontrado() {
+        when(comprobanteRepository.findByPagoFolioUnico("PF-NO-EXISTE"))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                ComprobanteNoEncontradoException.class,
+                () -> service.obtenerComprobantePorFolio("PF-NO-EXISTE")
+        );
     }
 }
