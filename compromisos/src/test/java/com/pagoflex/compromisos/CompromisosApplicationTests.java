@@ -10,4 +10,9 @@ class CompromisosApplicationTests {
 	void contextLoads() {
 	}
 
+	@Test
+    void mainDebeEjecutarLaAplicacion() {
+        CompromisosApplication.main(new String[]{});
+    }
+
 }
