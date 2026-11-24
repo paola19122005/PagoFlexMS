@@ -1,3 +1,4 @@
+
 package com.pagoflex.compromisos.controller;
 
 import com.pagoflex.compromisos.dto.request.AnulacionRequest;
@@ -24,6 +25,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,15 +55,82 @@ class CompromisoControllerTest {
     @Test
     void registrar() {
         CompromisoResponse response = new CompromisoResponse();
-        when(compromisoRegistroService.registrar(org.mockito.ArgumentMatchers.any()))
+
+        when(compromisoRegistroService.registrar(any()))
                 .thenReturn(new CompromisoRegistroResultado(true, response));
+
         assertEquals(201, controller.registrar(new CompromisoRegistroRequest()).getStatusCode().value());
+    }
+
+    @Test
+    void registrarCuandoNoEsCreado() {
+        CompromisoResponse response = new CompromisoResponse();
+
+        when(compromisoRegistroService.registrar(any()))
+                .thenReturn(new CompromisoRegistroResultado(false, response));
+
+        assertEquals(200, controller.registrar(new CompromisoRegistroRequest()).getStatusCode().value());
     }
 
     @Test
     void obtenerPorId() {
         when(compromisoConsultaService.obtenerPorId(1)).thenReturn(new CompromisoResponse());
         controller.obtenerPorId(1);
+    }
+
+    @Test
+    void obtenerPorFolio() {
+        CompromisoResponse response = new CompromisoResponse();
+
+        when(compromisoConsultaService.obtenerPorFolio("FOL-001"))
+                .thenReturn(response);
+
+        assertSame(response, controller.obtenerPorFolio("FOL-001"));
+        verify(compromisoConsultaService).obtenerPorFolio("FOL-001");
+    }
+
+    @Test
+    void listarPorUsuario() {
+        List<CompromisoResponse> response = List.of(new CompromisoResponse());
+
+        when(compromisoConsultaService.listarPorUsuario(1))
+                .thenReturn(response);
+
+        assertSame(response, controller.listarPorUsuario(1));
+        verify(compromisoConsultaService).listarPorUsuario(1);
+    }
+
+    @Test
+    void listarPorEmpresa() {
+        List<CompromisoResponse> response = List.of(new CompromisoResponse());
+
+        when(compromisoConsultaService.listarPorEmpresa(2))
+                .thenReturn(response);
+
+        assertSame(response, controller.listarPorEmpresa(2));
+        verify(compromisoConsultaService).listarPorEmpresa(2);
+    }
+
+    @Test
+    void listarPorUsuarioYEmpresa() {
+        List<CompromisoResponse> response = List.of(new CompromisoResponse());
+
+        when(compromisoConsultaService.listarPorUsuarioYEmpresa(1, 2))
+                .thenReturn(response);
+
+        assertSame(response, controller.listarPorUsuarioYEmpresa(1, 2));
+        verify(compromisoConsultaService).listarPorUsuarioYEmpresa(1, 2);
+    }
+
+    @Test
+    void listarPorEstado() {
+        List<CompromisoResponse> response = List.of(new CompromisoResponse());
+
+        when(compromisoConsultaService.listarPorEstado("PENDIENTE"))
+                .thenReturn(response);
+
+        assertSame(response, controller.listarPorEstado("PENDIENTE"));
+        verify(compromisoConsultaService).listarPorEstado("PENDIENTE");
     }
 
     @Test
@@ -69,35 +141,36 @@ class CompromisoControllerTest {
 
     @Test
     void actualizar() {
-        when(compromisoActualizacionService.actualizar(org.mockito.ArgumentMatchers.eq(1), org.mockito.ArgumentMatchers.any()))
+        when(compromisoActualizacionService.actualizar(eq(1), any()))
                 .thenReturn(new CompromisoResponse());
         controller.actualizar(1, new CompromisoActualizacionRequest());
     }
 
     @Test
     void anular() {
-        when(compromisoAnulacionService.anular(org.mockito.ArgumentMatchers.eq(1), org.mockito.ArgumentMatchers.any()))
+        when(compromisoAnulacionService.anular(eq(1), any()))
                 .thenReturn(new AnulacionResponse());
         controller.anular(1, new AnulacionRequest());
     }
 
     @Test
     void pago() {
-        when(compromisoActualizacionPagoService.actualizarPorPago(org.mockito.ArgumentMatchers.eq(1), org.mockito.ArgumentMatchers.any()))
+        when(compromisoActualizacionPagoService.actualizarPorPago(eq(1), any()))
                 .thenReturn(new CompromisoResponse());
         controller.actualizarPorPago(1, new CompromisoActualizacionPagoRequest());
     }
 
     @Test
     void vencimiento() {
-        when(compromisoActualizacionVencimientoService.actualizarPorVencimiento(org.mockito.ArgumentMatchers.eq(1), org.mockito.ArgumentMatchers.any()))
+        when(compromisoActualizacionVencimientoService.actualizarPorVencimiento(eq(1), any()))
                 .thenReturn(new CompromisoResponse());
         controller.actualizarPorVencimiento(1, new CompromisoActualizacionVencimientoRequest());
     }
 
     @Test
     void revision() {
-        when(compromisoActualizacionRevisionService.actualizarRevision(1)).thenReturn(new CompromisoResponse());
+        when(compromisoActualizacionRevisionService.actualizarRevision(1))
+                .thenReturn(new CompromisoResponse());
         controller.actualizarRevision(1);
     }
 }
