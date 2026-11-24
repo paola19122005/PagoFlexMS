@@ -9,6 +9,18 @@ public class ReporteMensajeResponse {
     private String contenido;
     private String fechaHora;
 
+    public ReporteMensajeResponse() {
+    }
+
+    public ReporteMensajeResponse(Long id, Long idReporte, Long idRemitente, String rolRemitente, String contenido, String fechaHora) {
+        this.id = id;
+        this.idReporte = idReporte;
+        this.idRemitente = idRemitente;
+        this.rolRemitente = rolRemitente;
+        this.contenido = contenido;
+        this.fechaHora = fechaHora;
+    }
+
     public Long getId() {
         return id;
     }
@@ -17,7 +29,7 @@ public class ReporteMensajeResponse {
         this.id = id;
     }
 
-     public Long getIdReporte() {
+    public Long getIdReporte() {
         return idReporte;
     }
 
@@ -55,5 +67,17 @@ public class ReporteMensajeResponse {
 
     public void setFechaHora(String fechaHora) {
         this.fechaHora = fechaHora;
+    }
+
+    @Override
+    public String toString() {
+        return "ReporteMensajeResponse{" +
+                "id=" + id +
+                ", idReporte=" + idReporte +
+                ", idRemitente=" + idRemitente +
+                ", rolRemitente='" + rolRemitente + '\'' +
+                ", contenido='" + contenido + '\'' +
+                ", fechaHora='" + fechaHora + '\'' +
+                '}';
     }
 }

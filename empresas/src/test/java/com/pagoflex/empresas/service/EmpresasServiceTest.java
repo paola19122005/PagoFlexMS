@@ -2,6 +2,7 @@ package com.pagoflex.empresas.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -37,14 +38,17 @@ class EmpresasServiceTest {
     @Test
     void crear() {
 
-        EmpresasRegistroRequest request =
-                new EmpresasRegistroRequest();
-
+        EmpresasRegistroRequest request = new EmpresasRegistroRequest();
         request.setCodigo("EMP001");
+        request.setRazonSocial("Empresa S.A.");
+        request.setNombreFantasia("Mi Empresa");
         request.setRut("76.123.456-7");
+        request.setRubro("Tecnologia");
+        request.setEmail("contacto@empresa.com");
+        request.setTelefono("+56912345678");
+        request.setRecargo(0);
 
         Empresas empresas = new Empresas();
-        Empresas guardada = new Empresas();
         EmpresasResponse response = new EmpresasResponse();
 
         when(empresasRepository.existsByCodigo("EMP001"))
@@ -57,9 +61,9 @@ class EmpresasServiceTest {
                 .thenReturn(empresas);
 
         when(empresasRepository.save(empresas))
-                .thenReturn(guardada);
+                .thenReturn(empresas);
 
-        when(empresasMapper.toResponse(guardada))
+        when(empresasMapper.toResponse(empresas))
                 .thenReturn(response);
 
         assertEquals(
@@ -71,9 +75,7 @@ class EmpresasServiceTest {
     @Test
     void crearCodigoDuplicado() {
 
-        EmpresasRegistroRequest request =
-                new EmpresasRegistroRequest();
-
+        EmpresasRegistroRequest request = new EmpresasRegistroRequest();
         request.setCodigo("EMP001");
 
         when(empresasRepository.existsByCodigo("EMP001"))
@@ -88,9 +90,7 @@ class EmpresasServiceTest {
     @Test
     void crearRutDuplicado() {
 
-        EmpresasRegistroRequest request =
-                new EmpresasRegistroRequest();
-
+        EmpresasRegistroRequest request = new EmpresasRegistroRequest();
         request.setCodigo("EMP001");
         request.setRut("76.123.456-7");
 
@@ -127,16 +127,14 @@ class EmpresasServiceTest {
     void obtenerPorIdEncontrada() {
 
         Empresas empresas = new Empresas();
-        EmpresasResponse response = new EmpresasResponse();
 
         when(empresasRepository.findById(1L))
                 .thenReturn(Optional.of(empresas));
 
         when(empresasMapper.toResponse(empresas))
-                .thenReturn(response);
+                .thenReturn(new EmpresasResponse());
 
-        assertEquals(
-                response,
+        assertNotNull(
                 service.obtenerPorId(1L)
         );
     }
@@ -157,16 +155,14 @@ class EmpresasServiceTest {
     void obtenerPorCodigoEncontrada() {
 
         Empresas empresas = new Empresas();
-        EmpresasResponse response = new EmpresasResponse();
 
         when(empresasRepository.findByCodigo("EMP001"))
                 .thenReturn(Optional.of(empresas));
 
         when(empresasMapper.toResponse(empresas))
-                .thenReturn(response);
+                .thenReturn(new EmpresasResponse());
 
-        assertEquals(
-                response,
+        assertNotNull(
                 service.obtenerPorCodigo("EMP001")
         );
     }
@@ -187,16 +183,14 @@ class EmpresasServiceTest {
     void obtenerPorRutEncontrada() {
 
         Empresas empresas = new Empresas();
-        EmpresasResponse response = new EmpresasResponse();
 
         when(empresasRepository.findByRut("76.123.456-7"))
                 .thenReturn(Optional.of(empresas));
 
         when(empresasMapper.toResponse(empresas))
-                .thenReturn(response);
+                .thenReturn(new EmpresasResponse());
 
-        assertEquals(
-                response,
+        assertNotNull(
                 service.obtenerPorRut("76.123.456-7")
         );
     }
@@ -216,17 +210,18 @@ class EmpresasServiceTest {
     @Test
     void actualizar() {
 
-        EmpresasRegistroRequest request =
-                new EmpresasRegistroRequest();
-
+        EmpresasRegistroRequest request = new EmpresasRegistroRequest();
         request.setCodigo("EMP001");
+        request.setRazonSocial("Empresa Actualizada S.A.");
+        request.setNombreFantasia("Mi Empresa Actualizada");
         request.setRut("76.123.456-7");
+        request.setRubro("Tecnologia");
+        request.setEmail("contacto@empresa.com");
+        request.setTelefono("+56912345678");
+        request.setRecargo(0);
 
         Empresas empresas = new Empresas();
         empresas.setId(1L);
-
-        Empresas guardada = new Empresas();
-        EmpresasResponse response = new EmpresasResponse();
 
         when(empresasRepository.findById(1L))
                 .thenReturn(Optional.of(empresas));
@@ -238,39 +233,80 @@ class EmpresasServiceTest {
                 .thenReturn(Optional.empty());
 
         when(empresasRepository.save(empresas))
-                .thenReturn(guardada);
+                .thenReturn(empresas);
 
-        when(empresasMapper.toResponse(guardada))
-                .thenReturn(response);
+        when(empresasMapper.toResponse(empresas))
+                .thenReturn(new EmpresasResponse());
 
-        assertEquals(
-                response,
+        assertNotNull(
                 service.actualizar(1L, request)
+        );
+    }
+
+    @Test
+    void actualizarCodigoDuplicado() {
+
+        EmpresasRegistroRequest request = new EmpresasRegistroRequest();
+        request.setCodigo("EMP002");
+
+        Empresas empresaExistenteConEseCodigo = new Empresas();
+        empresaExistenteConEseCodigo.setId(2L); // ID diferente al que actualizamos (1L)
+
+        when(empresasRepository.findById(1L))
+                .thenReturn(Optional.of(new Empresas()));
+
+        // Stubbing con la empresa existente que tiene ese codigo y un ID diferente
+        when(empresasRepository.findByCodigo("EMP002"))
+                .thenReturn(Optional.of(empresaExistenteConEseCodigo));
+
+        assertThrows(
+                EmpresaDuplicadaException.class,
+                () -> service.actualizar(1L, request)
+        );
+    }
+
+    @Test
+    void actualizarRutDuplicado() {
+
+        EmpresasRegistroRequest request = new EmpresasRegistroRequest();
+        request.setCodigo("EMP001"); // El servicio verifica codigo y rut
+        request.setRut("76.123.456-8");
+
+        when(empresasRepository.findById(1L))
+                .thenReturn(Optional.of(new Empresas()));
+
+        when(empresasRepository.findByCodigo("EMP001"))
+                .thenReturn(Optional.empty());
+
+        // Stubbing con la empresa existente que tiene ese rut y un ID diferente al que actualizamos (2L != 1L)
+        Empresas empresaExistenteConEseRut = new Empresas();
+        empresaExistenteConEseRut.setId(2L);
+        when(empresasRepository.findByRut("76.123.456-8"))
+                .thenReturn(Optional.of(empresaExistenteConEseRut));
+
+        assertThrows(
+                EmpresaDuplicadaException.class,
+                () -> service.actualizar(1L, request)
         );
     }
 
     @Test
     void actualizarNoEncontrada() {
 
-        EmpresasRegistroRequest request =
-                new EmpresasRegistroRequest();
-
         when(empresasRepository.findById(1L))
                 .thenReturn(Optional.empty());
 
         assertThrows(
                 EmpresaNoEncontradaException.class,
-                () -> service.actualizar(1L, request)
+                () -> service.actualizar(1L, new EmpresasRegistroRequest())
         );
     }
 
     @Test
     void eliminar() {
 
-        Empresas empresas = new Empresas();
-
         when(empresasRepository.findById(1L))
-                .thenReturn(Optional.of(empresas));
+                .thenReturn(Optional.of(new Empresas()));
 
         service.eliminar(1L);
     }

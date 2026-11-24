@@ -1,5 +1,8 @@
 package com.pagoflex.reportes.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -32,4 +35,8 @@ public class ReporteMensaje {
 
     @Column(name = "fecha_hora", nullable = false, length = 30)
     private String fechaHora;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_reporte", referencedColumnName = "id", insertable = false, updatable = false)
+    private Reporte reporte;
 }

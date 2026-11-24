@@ -25,6 +25,17 @@ public class ReporteRegistroRequest {
     @NotNull
     private Long idUsuario;
 
+    public ReporteRegistroRequest() {
+    }
+
+    public ReporteRegistroRequest(String tipo, String compromiso, String descripcion, String fecha, Long idUsuario) {
+        this.tipo = tipo;
+        this.compromiso = compromiso;
+        this.descripcion = descripcion;
+        this.fecha = fecha;
+        this.idUsuario = idUsuario;
+    }
+
     public String getTipo() {
         return tipo;
     }

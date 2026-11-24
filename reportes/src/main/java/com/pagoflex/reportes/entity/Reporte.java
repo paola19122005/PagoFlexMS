@@ -1,5 +1,8 @@
 package com.pagoflex.reportes.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,4 +37,7 @@ public class Reporte {
 
     @Column(name = "estado", nullable = false, length = 20)
     private String estado = "PENDIENTE";
+
+    @OneToMany(mappedBy = "reporte", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ReporteMensaje> mensajes = new ArrayList<>();
 }

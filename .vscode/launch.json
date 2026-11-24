@@ -2,6 +2,27 @@
     "configurations": [
         {
             "type": "java",
+            "name": "PagosApplication",
+            "request": "launch",
+            "mainClass": "com.pagoflex.pagos.PagosApplication",
+            "projectName": "pagos"
+        },
+        {
+            "type": "java",
+            "name": "CompromisosApplication",
+            "request": "launch",
+            "mainClass": "com.pagoflex.compromisos.CompromisosApplication",
+            "projectName": "compromisos"
+        },
+        {
+            "type": "java",
+            "name": "UsuariosApplication",
+            "request": "launch",
+            "mainClass": "com.pagoflex.usuarios.UsuariosApplication",
+            "projectName": "usuarios"
+        },
+        {
+            "type": "java",
             "name": "ReportesApplication",
             "request": "launch",
             "mainClass": "com.pagoflex.reportes.ReportesApplication",

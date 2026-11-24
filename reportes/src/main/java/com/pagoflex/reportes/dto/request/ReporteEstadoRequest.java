@@ -7,6 +7,13 @@ public class ReporteEstadoRequest {
     @NotBlank
     private String estado;
 
+    public ReporteEstadoRequest() {
+    }
+
+    public ReporteEstadoRequest(String estado) {
+        this.estado = estado;
+    }
+
     public String getEstado() {
         return estado;
     }

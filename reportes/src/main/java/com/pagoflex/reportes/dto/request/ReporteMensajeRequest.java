@@ -21,6 +21,16 @@ public class ReporteMensajeRequest {
     @Size(max = 30)
     private String fechaHora;
 
+    public ReporteMensajeRequest() {
+    }
+
+    public ReporteMensajeRequest(Long idRemitente, String rolRemitente, String contenido, String fechaHora) {
+        this.idRemitente = idRemitente;
+        this.rolRemitente = rolRemitente;
+        this.contenido = contenido;
+        this.fechaHora = fechaHora;
+    }
+
     public Long getIdRemitente() {
         return idRemitente;
     }

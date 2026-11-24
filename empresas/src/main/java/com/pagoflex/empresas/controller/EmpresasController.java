@@ -19,6 +19,10 @@ import com.pagoflex.empresas.service.EmpresasService;
 
 import jakarta.validation.Valid;
 
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.bind.annotation.CrossOrigin;
+
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/empresas")
 public class EmpresasController {
