@@ -1,7 +1,9 @@
 package com.pagoflex.usuarios.controller;
 
 import com.pagoflex.usuarios.dto.request.UsuarioActivoRequest;
+import com.pagoflex.usuarios.dto.request.UsuarioCambioContrasenaRequest;
 import com.pagoflex.usuarios.dto.request.UsuarioLoginRequest;
+import com.pagoflex.usuarios.dto.request.UsuarioResetContrasenaRequest;
 import com.pagoflex.usuarios.dto.request.UsuarioPerfilRequest;
 import com.pagoflex.usuarios.dto.request.UsuarioRegistroRequest;
 import com.pagoflex.usuarios.dto.request.UsuarioRolRequest;
@@ -75,5 +77,18 @@ public class UsuarioController {
     public UsuarioResponse cambiarActivo(@PathVariable Long id,
                                          @Valid @RequestBody UsuarioActivoRequest request) {
         return usuarioService.cambiarActivo(id, request.getActivo());
+    }
+
+    @PutMapping("/{id}/contrasena")
+    public ResponseEntity<Void> cambiarContrasena(@PathVariable Long id,
+                                                  @Valid @RequestBody UsuarioCambioContrasenaRequest request) {
+        usuarioService.cambiarContrasena(id, request.getActual(), request.getNueva());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/reset-contrasena")
+    public ResponseEntity<Void> resetContrasena(@Valid @RequestBody UsuarioResetContrasenaRequest request) {
+        usuarioService.resetContrasena(request.getEmail(), request.getNuevaPassword());
+        return ResponseEntity.noContent().build();
     }
 }

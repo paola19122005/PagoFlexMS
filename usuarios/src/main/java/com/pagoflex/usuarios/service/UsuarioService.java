@@ -4,6 +4,8 @@ import com.pagoflex.usuarios.dto.request.UsuarioLoginRequest;
 import com.pagoflex.usuarios.dto.request.UsuarioPerfilRequest;
 import com.pagoflex.usuarios.dto.request.UsuarioRegistroRequest;
 import com.pagoflex.usuarios.dto.request.UsuarioRolRequest;
+import com.pagoflex.usuarios.dto.request.UsuarioCambioContrasenaRequest;
+import com.pagoflex.usuarios.dto.request.UsuarioResetContrasenaRequest;
 import com.pagoflex.usuarios.dto.response.UsuarioResponse;
 import com.pagoflex.usuarios.entity.PreguntasSeguridad;
 import com.pagoflex.usuarios.entity.Usuario;
@@ -210,6 +212,28 @@ public class UsuarioService {
         usuario.setActivo(activo);
         Usuario guardado = usuarioRepository.save(usuario);
         return usuarioMapper.toResponse(guardado);
+    }
+
+    @Transactional
+    public void cambiarContrasena(Long id, String actual, String nueva) {
+        Usuario usuario = buscar(id);
+        if (!passwordHasher.verificar(actual, usuario.getSalt(), usuario.getPasswordHash())) {
+            throw new CredencialesInvalidasException("Contrase��a actual incorrecta");
+        }
+        String salt = passwordHasher.generarSalt();
+        usuario.setPasswordHash(passwordHasher.hash(nueva, salt));
+        usuario.setSalt(salt);
+        usuarioRepository.save(usuario);
+    }
+
+    @Transactional
+    public void resetContrasena(String email, String nuevaPassword) {
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email.trim())
+                .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado: " + email));
+        String salt = passwordHasher.generarSalt();
+        usuario.setPasswordHash(passwordHasher.hash(nuevaPassword, salt));
+        usuario.setSalt(salt);
+        usuarioRepository.save(usuario);
     }
 
     private Usuario buscar(Long id) {

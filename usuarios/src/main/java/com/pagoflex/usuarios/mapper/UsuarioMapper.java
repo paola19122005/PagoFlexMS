@@ -44,6 +44,9 @@ public class UsuarioMapper {
                     PreguntasSeguridad.normalizarRespuesta(request.getRespuestaSeguridad())
             );
         }
+        if (request.getFotoUri() != null) {
+            usuario.setFotoUri(request.getFotoUri());
+        }
     }
 
     public UsuarioResponse toResponse(Usuario usuario) {

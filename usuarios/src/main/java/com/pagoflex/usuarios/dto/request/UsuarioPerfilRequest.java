@@ -22,6 +22,9 @@ public class UsuarioPerfilRequest {
     @Size(max = 120)
     private String respuestaSeguridad;
 
+    @Size(max = 500)
+    private String fotoUri;
+
     public String getNombre() {
         return nombre;
     }
@@ -60,5 +63,13 @@ public class UsuarioPerfilRequest {
 
     public void setRespuestaSeguridad(String respuestaSeguridad) {
         this.respuestaSeguridad = respuestaSeguridad;
+    }
+
+    public String getFotoUri() {
+        return fotoUri;
+    }
+
+    public void setFotoUri(String fotoUri) {
+        this.fotoUri = fotoUri;
     }
 }
